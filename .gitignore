@@ -1,0 +1,39 @@
+# Maven / build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+*.jar
+*.war
+
+# Banco SQLite local e dados
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.kiro/
+nbproject/
+nbbuild/
+nbdist/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Segredos e ambiente local
+.env
+*.pem
+*.key
+application-local.yml
+application-local.properties
