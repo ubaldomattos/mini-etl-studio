@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section}, ~{})}">
+<head><title>Erro · Mini ETL Studio</title></head>
+<body>
+<section>
+    <div class="card mx-auto" style="max-width: 36rem">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-exclamation-triangle display-5 text-danger"></i>
+            <h1 class="h4 mt-3" th:text="${titulo ?: 'Erro'}">Erro</h1>
+            <p class="text-body-secondary" th:text="${mensagem ?: 'Ocorreu um erro inesperado.'}">Mensagem</p>
+            <a class="btn btn-primary" th:href="@{/}">Voltar ao dashboard</a>
+        </div>
+    </div>
+</section>
+</body>
+</html>

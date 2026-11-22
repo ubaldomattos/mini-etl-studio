@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section}, ~{})}">
+<head><title>Importar · Mini ETL Studio</title></head>
+<body>
+<section>
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Importar arquivo CSV</h1>
+        <p class="text-body-secondary mb-0">Selecione um CSV com as colunas <strong>nome</strong>, <strong>email</strong>,
+            <strong>telefone</strong> e <strong>cidade</strong>. Separadores aceitos: vírgula ou ponto e vírgula.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="formUpload" th:action="@{/importar/processar}" method="post" enctype="multipart/form-data"
+                  data-processando="Processando..."
+                  th:attr="hx-post=@{/importar/previa}"
+                  hx-trigger="change from:#arquivo" hx-target="#resultadoPrevia" hx-encoding="multipart/form-data"
+                  hx-indicator="#carregandoPrevia">
+                <input type="file" id="arquivo" name="arquivo" accept=".csv,text/csv" class="visually-hidden" required>
+                <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Selecionar arquivo CSV">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <div class="fw-semibold mt-2">Clique para selecionar ou arraste o arquivo aqui</div>
+                    <div class="small text-body-secondary">Arquivo .csv · UTF-8 · até 5 MB</div>
+                    <div id="nomeArquivoSelecionado" class="mt-2 fw-semibold text-primary"></div>
+                </div>
+            </form>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                <span id="carregandoPrevia" class="htmx-indicator small text-body-secondary">
+                    <span class="spinner-border spinner-border-sm"></span> Lendo arquivo...
+                </span>
+                <a class="small ms-auto" th:href="@{/exemplo/clientes_exemplo.csv}" download>
+                    <i class="bi bi-file-earmark-arrow-down"></i> Baixar CSV de exemplo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultadoPrevia" aria-live="polite"></div>
+</section>
+</body>
+</html>

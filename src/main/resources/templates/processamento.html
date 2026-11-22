@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section}, ~{})}">
+<head><title>Processamento · Mini ETL Studio</title></head>
+<body>
+<section th:with="p=${processamento}">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a th:href="@{/processamentos}">Histórico</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="|Processamento #${p.id}|">#1</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h1 class="h3 mb-1 text-break" th:text="${p.nomeArquivo}">arquivo.csv</h1>
+            <div class="text-body-secondary small">
+                <span th:text="|#${p.id}|">#1</span> ·
+                <span th:text="${#temporals.format(p.dataExecucao, 'dd/MM/yyyy HH:mm:ss')}">data</span> ·
+                <span class="badge" th:classappend="${p.carregado()} ? 'text-bg-success' : 'text-bg-secondary'"
+                      th:text="${p.status.descricao}">Processado</span>
+            </div>
+        </div>
+        <form th:unless="${p.carregado()}" th:action="@{/processamentos/{id}/carga(id=${p.id})}" method="post"
+              data-processando="Carregando...">
+            <button type="submit" class="btn btn-success" th:disabled="${p.validos == 0}">
+                <i class="bi bi-database-down"></i> Carregar válidos no banco (Load)
+            </button>
+        </form>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: etapas(${p.carregado()} ? 3 : 2)}"></div>
+
+    <div th:if="${!p.carregado() && p.validos == 0}" class="alert alert-warning small">
+        <i class="bi bi-info-circle"></i> Não há registros válidos para carregar neste processamento.
+    </div>
+    <div th:if="${!p.carregado() && p.validos > 0}" class="alert alert-info small">
+        <i class="bi bi-info-circle"></i> Extração e transformação concluídas. Revise os registros e clique em
+        <strong>Carregar válidos no banco</strong> para gravar os <span th:text="${p.validos}">0</span> registro(s) válido(s).
+        Inválidos e duplicados não são carregados.
+    </div>
+
+    <div th:replace="~{fragments/componentes :: kpis(${p.extraidos}, ${p.validos}, ${p.invalidos}, ${p.duplicados}, ${p.carregados})}"></div>
+
+    <div th:replace="~{fragments/componentes :: exportacao(${p.id})}"></div>
+
+    <div class="card">
+        <div class="card-body pb-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h2 class="h5 mb-0"><i class="bi bi-table"></i> Registros processados</h2>
+            <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filtrar por situação">
+                <a class="btn btn-outline-secondary" th:classappend="${situacaoFiltro == null} ? 'active'"
+                   th:href="@{/processamentos/{id}(id=${p.id})}">Todos</a>
+                <a th:each="s : ${situacoes}" class="btn btn-outline-secondary"
+                   th:classappend="${situacaoFiltro == s} ? 'active'"
+                   th:href="@{/processamentos/{id}(id=${p.id}, situacao=${s})}" th:text="${s.descricao}">Válido</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0 tabela-dados">
+                <thead>
+                <tr><th>Linha</th><th>Situação</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cidade</th>
+                    <th>Motivo / observação</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:if="${registros.empty}"><td colspan="8" class="text-center text-body-secondary py-4">
+                    Nenhum registro nesta situação.</td></tr>
+                <th:block th:each="r : ${registros}">
+                    <tr th:classappend="'linha-' + ${r.situacao}">
+                        <td th:text="${r.numeroLinha}">2</td>
+                        <td><span th:replace="~{fragments/componentes :: situacao(${r.situacao})}"></span></td>
+                        <td th:text="${r.transNome ?: r.origNome}">nome</td>
+                        <td th:text="${r.transEmail ?: r.origEmail}">email</td>
+                        <td th:text="${r.transTelefone ?: r.origTelefone}">tel</td>
+                        <td th:text="${r.transCidade ?: r.origCidade}">cidade</td>
+                        <td class="texto-quebra small" th:text="${r.mensagem ?: 'Todas as validações aprovadas'}">motivo</td>
+                        <td><button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse"
+                                    th:attr="data-bs-target='#detalhe-' + ${r.numeroLinha}, aria-controls='detalhe-' + ${r.numeroLinha}"
+                                    aria-expanded="false" title="Ver original x transformado">
+                            <i class="bi bi-arrow-left-right"></i></button></td>
+                    </tr>
+                    <tr class="collapse" th:id="'detalhe-' + ${r.numeroLinha}">
+                        <td colspan="8" class="bg-body-tertiary">
+                            <div class="row g-3 small p-2">
+                                <div class="col-md-6">
+                                    <div class="fw-semibold mb-1">Dados originais</div>
+                                    <dl class="row mb-0">
+                                        <dt class="col-4">Nome</dt><dd class="col-8 text-break" th:text="${r.origNome}">-</dd>
+                                        <dt class="col-4">E-mail</dt><dd class="col-8 text-break" th:text="${r.origEmail}">-</dd>
+                                        <dt class="col-4">Telefone</dt><dd class="col-8 text-break" th:text="${r.origTelefone}">-</dd>
+                                        <dt class="col-4">Cidade</dt><dd class="col-8 text-break" th:text="${r.origCidade}">-</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="fw-semibold mb-1">Dados transformados</div>
+                                    <dl class="row mb-0">
+                                        <dt class="col-4">Nome</dt><dd class="col-8 text-break" th:text="${r.transNome}">-</dd>
+                                        <dt class="col-4">E-mail</dt><dd class="col-8 text-break" th:text="${r.transEmail}">-</dd>
+                                        <dt class="col-4">Telefone</dt><dd class="col-8 text-break" th:text="${r.transTelefone}">-</dd>
+                                        <dt class="col-4">Cidade</dt><dd class="col-8 text-break" th:text="${r.transCidade}">-</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-12">
+                                    <div class="fw-semibold mb-1">Resultado das validações</div>
+                                    <div class="texto-quebra" th:text="${r.resultadoValidacao}">-</div>
+                                    <div th:if="${r.clienteId != null}" class="mt-1">
+                                        <a th:href="@{/clientes/{id}(id=${r.clienteId})}" th:text="|Cliente #${r.clienteId} no banco|">cliente</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-transparent" th:if="${registros.totalPages > 1}">
+            <div th:replace="~{fragments/componentes :: paginacao(${registros},
+                ${'/processamentos/' + p.id + '?' + (situacaoFiltro != null ? 'situacao=' + situacaoFiltro + '&' : '') + 'pagina='})}"></div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

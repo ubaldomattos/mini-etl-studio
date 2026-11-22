@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Etapas ETL. fase: 1 = extração em andamento (prévia), 2 = extraído e transformado (aguardando carga),
+  3 = carga concluída.
+-->
+<div th:fragment="etapas(fase)" class="etl-steps mb-4" role="list" aria-label="Etapas do processamento">
+    <div class="etl-step extract" role="listitem"
+         th:classappend="${fase > 1} ? 'feito' : (${fase == 1} ? 'atual' : 'pendente')">
+        <span class="etl-numero"><i th:class="${fase > 1} ? 'bi bi-check-lg' : 'bi bi-box-arrow-in-down'"></i></span>
+        <div><strong>Extract</strong><small th:text="${fase > 1} ? 'Arquivo lido' : 'Leitura do CSV'">Leitura do CSV</small></div>
+    </div>
+    <div class="etl-step transform" role="listitem"
+         th:classappend="${fase > 1} ? 'feito' : 'pendente'">
+        <span class="etl-numero"><i th:class="${fase > 1} ? 'bi bi-check-lg' : 'bi bi-shuffle'"></i></span>
+        <div><strong>Transform</strong><small th:text="${fase > 1} ? 'Padronizado e validado' : 'Padronização e validação'">Padronização e validação</small></div>
+    </div>
+    <div class="etl-step load" role="listitem"
+         th:classappend="${fase > 2} ? 'feito' : (${fase == 2} ? 'atual' : 'pendente')">
+        <span class="etl-numero"><i th:class="${fase > 2} ? 'bi bi-check-lg' : 'bi bi-database-down'"></i></span>
+        <div><strong>Load</strong><small th:text="${fase > 2} ? 'Gravado no SQLite' : (${fase == 2} ? 'Aguardando carga' : 'Carga no SQLite')">Carga no SQLite</small></div>
+    </div>
+</div>
+
+<!-- Cards de indicadores de um conjunto de quantidades -->
+<div th:fragment="kpis(extraidos, validos, invalidos, duplicados, carregados)" class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl">
+        <div class="card kpi-card kpi-extraidos h-100"><div class="card-body d-flex gap-3 align-items-center">
+            <span class="kpi-icone"><i class="bi bi-file-earmark-spreadsheet"></i></span>
+            <div><div class="text-body-secondary small">Extraídos</div><div class="kpi-valor" th:text="${extraidos}">0</div></div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="card kpi-card kpi-validos h-100"><div class="card-body d-flex gap-3 align-items-center">
+            <span class="kpi-icone"><i class="bi bi-check-circle"></i></span>
+            <div><div class="text-body-secondary small">Válidos</div><div class="kpi-valor" th:text="${validos}">0</div></div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="card kpi-card kpi-invalidos h-100"><div class="card-body d-flex gap-3 align-items-center">
+            <span class="kpi-icone"><i class="bi bi-x-octagon"></i></span>
+            <div><div class="text-body-secondary small">Inválidos</div><div class="kpi-valor" th:text="${invalidos}">0</div></div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-6 col-xl">
+        <div class="card kpi-card kpi-duplicados h-100"><div class="card-body d-flex gap-3 align-items-center">
+            <span class="kpi-icone"><i class="bi bi-files"></i></span>
+            <div><div class="text-body-secondary small">Duplicados</div><div class="kpi-valor" th:text="${duplicados}">0</div></div>
+        </div></div>
+    </div>
+    <div class="col-12 col-md-6 col-xl">
+        <div class="card kpi-card kpi-carregados h-100"><div class="card-body d-flex gap-3 align-items-center">
+            <span class="kpi-icone"><i class="bi bi-database-check"></i></span>
+            <div><div class="text-body-secondary small">Carregados no banco</div><div class="kpi-valor" th:text="${carregados}">0</div></div>
+        </div></div>
+    </div>
+</div>
+
+<!-- Área de exportação com as três modalidades -->
+<section th:fragment="exportacao(processamentoId)" class="mb-4" aria-labelledby="tituloExportacao">
+    <h2 id="tituloExportacao" class="h5 mb-3"><i class="bi bi-download"></i> Exportação</h2>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card export-card export-tratado"><div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-patch-check-fill export-icone"></i><h3 class="h6 mb-0">CSV tratado</h3>
+                </div>
+                <p class="small text-body-secondary flex-grow-1">Registros válidos, corrigidos e sem duplicidades,
+                    com os dados já padronizados. Corresponde ao que é elegível para carga no banco.</p>
+                <a class="btn btn-success btn-sm" th:href="@{/processamentos/{id}/exportacao/tratado(id=${processamentoId})}"
+                   download><i class="bi bi-download"></i> Baixar CSV tratado</a>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card export-card export-rejeitados"><div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-exclamation-octagon-fill export-icone"></i><h3 class="h6 mb-0">CSV de rejeitados</h3>
+                </div>
+                <p class="small text-body-secondary flex-grow-1">Registros inválidos e duplicados, com os dados originais
+                    exatamente como vieram no arquivo e a coluna <code>motivo_rejeicao</code>.</p>
+                <a class="btn btn-danger btn-sm" th:href="@{/processamentos/{id}/exportacao/rejeitados(id=${processamentoId})}"
+                   download><i class="bi bi-download"></i> Baixar CSV de rejeitados</a>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card export-card export-completo"><div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-journal-text export-icone"></i><h3 class="h6 mb-0">CSV completo</h3>
+                </div>
+                <p class="small text-body-secondary flex-grow-1">Todos os registros extraídos, com os dados originais e as
+                    colunas <code>situacao</code> e <code>resultado_validacao</code>.</p>
+                <a class="btn btn-primary btn-sm" th:href="@{/processamentos/{id}/exportacao/completo(id=${processamentoId})}"
+                   download><i class="bi bi-download"></i> Baixar CSV completo</a>
+            </div></div>
+        </div>
+    </div>
+</section>
+
+<!-- Selo de situação -->
+<span th:fragment="situacao(s)" class="badge rounded-pill badge-situacao" th:classappend="'badge-' + ${s}">
+    <i th:class="${s.name() == 'VALIDO'} ? 'bi bi-check-circle' : (${s.name() == 'INVALIDO'} ? 'bi bi-x-circle' : 'bi bi-files')"></i>
+    <span th:text="${s.descricao}">Válido</span>
+</span>
+
+<!-- Paginação genérica. url deve conter os parâmetros fixos; a página é adicionada ao final. -->
+<nav th:fragment="paginacao(pagina, baseUrl)" th:if="${pagina.totalPages > 1}" aria-label="Paginação">
+    <ul class="pagination pagination-sm justify-content-center flex-wrap mb-0">
+        <li class="page-item" th:classappend="${pagina.first} ? 'disabled'">
+            <a class="page-link" th:href="${baseUrl + (pagina.number - 1)}">Anterior</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link"
+            th:text="|Página ${pagina.number + 1} de ${pagina.totalPages}|">Página 1 de 1</span></li>
+        <li class="page-item" th:classappend="${pagina.last} ? 'disabled'">
+            <a class="page-link" th:href="${baseUrl + (pagina.number + 1)}">Próxima</a>
+        </li>
+    </ul>
+</nav>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="erro" class="alert alert-danger d-flex gap-2 mt-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div><strong>Arquivo inválido.</strong> <span th:text="${mensagem}">Mensagem</span></div>
+</div>
+
+<div th:fragment="previa" class="mt-4">
+    <div th:replace="~{fragments/componentes :: etapas(1)}"></div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start">
+                <div>
+                    <h2 class="h5 mb-1"><i class="bi bi-eye"></i> Prévia: <span th:text="${previa.nomeArquivo}">arquivo.csv</span></h2>
+                    <div class="small text-body-secondary">
+                        <span th:text="${previa.totalRegistros}">0</span> registro(s) extraído(s) ·
+                        delimitador <span th:text="${previa.delimitador}">,</span> ·
+                        colunas: <span th:text="${#strings.listJoin(previa.cabecalhos, ', ')}">nome</span>
+                    </div>
+                </div>
+                <button type="submit" form="formUpload" class="btn btn-primary">
+                    <i class="bi bi-play-fill"></i> Processar (Extract + Transform)
+                </button>
+            </div>
+            <div th:if="${previa.comProblemaEstrutura > 0}" class="alert alert-warning small mt-3 mb-0">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${previa.comProblemaEstrutura}">0</span> registro(s) com problema de estrutura
+                (quantidade de colunas diferente do cabeçalho). Eles serão classificados como inválidos.
+            </div>
+            <ul th:if="${!previa.avisos.isEmpty()}" class="small text-body-secondary mt-3 mb-0">
+                <li th:each="aviso : ${previa.avisos}" th:text="${aviso}">aviso</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0 tabela-dados">
+                <thead><tr><th>Linha</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cidade</th><th>Estrutura</th></tr></thead>
+                <tbody>
+                <tr th:each="l : ${previa.linhas}" th:classappend="${l.problemaEstrutura != null} ? 'linha-INVALIDO'">
+                    <td th:text="${l.numeroLinha}">2</td>
+                    <td th:text="${l.nome}">nome</td>
+                    <td th:text="${l.email}">email</td>
+                    <td th:text="${l.telefone}">tel</td>
+                    <td th:text="${l.cidade}">cidade</td>
+                    <td>
+                        <span th:if="${l.problemaEstrutura == null}" class="text-success small"><i class="bi bi-check"></i> OK</span>
+                        <span th:unless="${l.problemaEstrutura == null}" class="text-danger small texto-quebra"
+                              th:text="${l.problemaEstrutura}">problema</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:if="${previa.truncada()}" class="card-footer small text-body-secondary">
+            Exibindo as primeiras <span th:text="${previa.linhas.size()}">50</span> de
+            <span th:text="${previa.totalRegistros}">100</span> linhas. Todas serão processadas.
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

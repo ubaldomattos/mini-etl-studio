@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section}, ~{})}">
+<head><title>Clientes · Mini ETL Studio</title></head>
+<body>
+<section>
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Clientes armazenados</h1>
+        <p class="text-body-secondary mb-0">Registros válidos carregados no banco de dados SQLite.</p>
+    </div>
+
+    <form class="mb-3" th:action="@{/clientes}" method="get" role="search"
+          th:attr="hx-get=@{/clientes}" hx-trigger="input changed delay:300ms from:#q, submit"
+          hx-target="#resultadoClientes" hx-swap="outerHTML" hx-push-url="true">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="q" name="q" type="search" class="form-control" placeholder="Pesquisar por nome ou e-mail"
+                   aria-label="Pesquisar por nome ou e-mail" th:value="${termo}" autocomplete="off">
+            <button class="btn btn-primary" type="submit">Pesquisar</button>
+        </div>
+    </form>
+
+    <div id="resultadoClientes" th:fragment="resultado">
+        <div class="card">
+            <div class="card-body py-2 small text-body-secondary">
+                <span th:text="${pagina.totalElements}">0</span> cliente(s) encontrado(s)
+                <span th:if="${!#strings.isEmpty(termo)}" th:text="|para “${termo}”|"></span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 tabela-dados">
+                    <thead><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cidade</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:if="${pagina.empty}"><td colspan="6" class="text-center text-body-secondary py-5">
+                        Nenhum cliente encontrado.</td></tr>
+                    <tr th:each="c : ${pagina}">
+                        <td th:text="${c.id}">1</td>
+                        <td th:text="${c.nome}">Nome</td>
+                        <td th:text="${c.email}">email</td>
+                        <td th:text="${c.telefone}">tel</td>
+                        <td th:text="${c.cidade}">cidade</td>
+                        <td class="text-end"><a class="btn btn-sm btn-outline-primary"
+                                                th:href="@{/clientes/{id}(id=${c.id})}">Detalhes</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-transparent" th:if="${pagina.totalPages > 1}">
+                <div th:replace="~{fragments/componentes :: paginacao(${pagina},
+                    ${'/clientes?q=' + #uris.escapeQueryParam(termo) + '&pagina='})}"></div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

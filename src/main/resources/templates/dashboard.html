@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section}, ~{::script})}">
+<head><title>Dashboard · Mini ETL Studio</title></head>
+<body>
+<section>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Dashboard de processamento</h1>
+            <p class="text-body-secondary mb-0">Resumo acumulado de todas as importações realizadas.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/importar}"><i class="bi bi-upload"></i> Nova importação</a>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: kpis(${dashboard.totais.extraidos}, ${dashboard.totais.validos},
+            ${dashboard.totais.invalidos}, ${dashboard.totais.duplicados}, ${dashboard.totais.carregados})}"></div>
+
+    <div th:if="${dashboard.ultimo == null}" class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox display-5 text-body-secondary"></i>
+            <h2 class="h5 mt-3">Nenhum processamento realizado</h2>
+            <p class="text-body-secondary">Importe um arquivo CSV para ver os indicadores e gráficos.
+                Use o arquivo de exemplo para uma demonstração rápida.</p>
+            <a class="btn btn-outline-primary" th:href="@{/importar}">Importar arquivo</a>
+            <a class="btn btn-link" th:href="@{/exemplo/clientes_exemplo.csv}" download>Baixar CSV de exemplo</a>
+        </div>
+    </div>
+
+    <th:block th:if="${dashboard.ultimo != null}">
+        <div class="row g-3 mb-4">
+            <div class="col-lg-4">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h6 text-body-secondary">Distribuição dos registros</h2>
+                    <div class="grafico-container"><canvas id="graficoDistribuicao" aria-label="Distribuição dos registros" role="img"></canvas></div>
+                </div></div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h6 text-body-secondary">Últimos processamentos</h2>
+                    <div class="grafico-container"><canvas id="graficoProcessamentos" aria-label="Resultados por processamento" role="img"></canvas></div>
+                </div></div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="card h-100"><div class="card-body" th:with="u=${dashboard.ultimo}">
+                    <h2 class="h6 text-body-secondary mb-3">Último processamento</h2>
+                    <div class="fw-semibold text-break" th:text="${u.nomeArquivo}">arquivo.csv</div>
+                    <div class="small text-body-secondary mb-3"
+                         th:text="|#${u.id} · ${#temporals.format(u.dataExecucao, 'dd/MM/yyyy HH:mm:ss')}|">#1</div>
+                    <div th:replace="~{fragments/componentes :: etapas(${u.carregado()} ? 3 : 2)}"></div>
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/processamentos/{id}(id=${u.id})}">
+                        Ver detalhes e exportar</a>
+                </div></div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="px-3 pt-3 pb-2 d-flex justify-content-between align-items-center">
+                        <h2 class="h6 text-body-secondary mb-0">Processamentos recentes</h2>
+                        <a class="small" th:href="@{/processamentos}">Ver histórico</a>
+                    </div>
+                    <div class="table-responsive px-2">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead><tr><th>#</th><th>Arquivo</th><th class="text-end">Válidos</th>
+                                <th class="text-end">Inválidos</th><th class="text-end">Duplicados</th><th>Status</th></tr></thead>
+                            <tbody>
+                            <tr th:each="p : ${dashboard.recentes}">
+                                <td><a th:href="@{/processamentos/{id}(id=${p.id})}" th:text="${p.id}">1</a></td>
+                                <td class="text-truncate" style="max-width: 12rem" th:text="${p.nomeArquivo}">a.csv</td>
+                                <td class="text-end" th:text="${p.validos}">0</td>
+                                <td class="text-end" th:text="${p.invalidos}">0</td>
+                                <td class="text-end" th:text="${p.duplicados}">0</td>
+                                <td><span class="badge" th:classappend="${p.carregado()} ? 'text-bg-success' : 'text-bg-secondary'"
+                                          th:text="${p.status.descricao}">Processado</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</section>
+
+<script th:if="${dashboard.ultimo != null}" th:src="@{/webjars/chart.js/4.4.3/dist/chart.umd.js}"></script>
+<script th:if="${dashboard.ultimo != null}" th:inline="javascript">
+    (function () {
+        var dados = /*[[${dashboard.graficos}]]*/ {};
+        var cores = {valido: '#198754', invalido: '#dc3545', duplicado: '#fd7e14'};
+        var graficos = [];
+
+        function corTexto() {
+            return getComputedStyle(document.body).getPropertyValue('--bs-body-color').trim();
+        }
+
+        function desenhar() {
+            graficos.forEach(function (g) { g.destroy(); });
+            Chart.defaults.color = corTexto();
+            Chart.defaults.borderColor = getComputedStyle(document.body).getPropertyValue('--bs-border-color').trim();
+            graficos = [
+                new Chart(document.getElementById('graficoDistribuicao'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Válidos', 'Inválidos', 'Duplicados'],
+                        datasets: [{data: dados.distribuicao,
+                            backgroundColor: [cores.valido, cores.invalido, cores.duplicado],
+                            borderColor: getComputedStyle(document.body).getPropertyValue('--bs-body-bg').trim()}]
+                    },
+                    options: {maintainAspectRatio: false, plugins: {legend: {position: 'bottom'}}}
+                }),
+                new Chart(document.getElementById('graficoProcessamentos'), {
+                    type: 'bar',
+                    data: {
+                        labels: dados.rotulos,
+                        datasets: [
+                            {label: 'Válidos', data: dados.validos, backgroundColor: cores.valido},
+                            {label: 'Inválidos', data: dados.invalidos, backgroundColor: cores.invalido},
+                            {label: 'Duplicados', data: dados.duplicados, backgroundColor: cores.duplicado}
+                        ]
+                    },
+                    options: {maintainAspectRatio: false, plugins: {legend: {position: 'bottom'}},
+                        scales: {x: {stacked: true}, y: {stacked: true, beginAtZero: true, ticks: {precision: 0}}}}
+                })
+            ];
+        }
+
+        desenhar();
+        document.addEventListener('tema-alterado', desenhar);
+    })();
+</script>
+</body>
+</html>

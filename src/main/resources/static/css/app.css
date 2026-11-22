@@ -1,0 +1,155 @@
+:root {
+    --etl-extract: #0d6efd;
+    --etl-transform: #6f42c1;
+    --etl-load: #198754;
+    --cor-valido: #198754;
+    --cor-invalido: #dc3545;
+    --cor-duplicado: #fd7e14;
+}
+
+body {
+    background: var(--bs-tertiary-bg);
+}
+
+.app-navbar {
+    background: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: .5rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--etl-extract), var(--etl-transform) 55%, var(--etl-load));
+}
+
+.card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: .75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+
+/* Cards de indicadores */
+.kpi-card .kpi-icone {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: .6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.kpi-card .kpi-valor {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.kpi-extraidos .kpi-icone { color: var(--etl-extract); background: rgba(13, 110, 253, .12); }
+.kpi-validos .kpi-icone { color: var(--cor-valido); background: rgba(25, 135, 84, .12); }
+.kpi-invalidos .kpi-icone { color: var(--cor-invalido); background: rgba(220, 53, 69, .12); }
+.kpi-duplicados .kpi-icone { color: var(--cor-duplicado); background: rgba(253, 126, 20, .14); }
+.kpi-carregados .kpi-icone { color: var(--etl-transform); background: rgba(111, 66, 193, .14); }
+
+/* Etapas ETL */
+.etl-steps {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.etl-step {
+    flex: 1 1 8rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .65rem .8rem;
+    border-radius: .75rem;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    position: relative;
+}
+
+.etl-step .etl-numero {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    background: var(--bs-secondary);
+    flex-shrink: 0;
+}
+
+.etl-step.extract.feito .etl-numero, .etl-step.extract.atual .etl-numero { background: var(--etl-extract); }
+.etl-step.transform.feito .etl-numero, .etl-step.transform.atual .etl-numero { background: var(--etl-transform); }
+.etl-step.load.feito .etl-numero, .etl-step.load.atual .etl-numero { background: var(--etl-load); }
+.etl-step.atual { box-shadow: 0 0 0 .2rem rgba(111, 66, 193, .2); }
+.etl-step.pendente { opacity: .65; }
+.etl-step small { display: block; color: var(--bs-secondary-color); }
+
+/* Indicadores de situação */
+.badge-situacao { font-weight: 600; letter-spacing: .02em; }
+.badge-VALIDO { background: rgba(25, 135, 84, .15); color: var(--cor-valido); border: 1px solid rgba(25, 135, 84, .35); }
+.badge-INVALIDO { background: rgba(220, 53, 69, .12); color: var(--cor-invalido); border: 1px solid rgba(220, 53, 69, .35); }
+.badge-DUPLICADO { background: rgba(253, 126, 20, .14); color: #c25e00; border: 1px solid rgba(253, 126, 20, .4); }
+[data-bs-theme="dark"] .badge-DUPLICADO { color: #ffa45c; }
+[data-bs-theme="dark"] .badge-VALIDO { color: #5dd39e; }
+[data-bs-theme="dark"] .badge-INVALIDO { color: #f1838e; }
+
+tr.linha-INVALIDO > td:first-child { box-shadow: inset 3px 0 0 var(--cor-invalido); }
+tr.linha-DUPLICADO > td:first-child { box-shadow: inset 3px 0 0 var(--cor-duplicado); }
+tr.linha-VALIDO > td:first-child { box-shadow: inset 3px 0 0 var(--cor-valido); }
+
+/* Área de exportação */
+.export-card {
+    height: 100%;
+    border-top: 4px solid var(--bs-border-color);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.export-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .08); }
+.export-tratado { border-top-color: var(--cor-valido); }
+.export-rejeitados { border-top-color: var(--cor-invalido); }
+.export-completo { border-top-color: var(--etl-extract); }
+.export-card .export-icone { font-size: 1.75rem; }
+.export-tratado .export-icone { color: var(--cor-valido); }
+.export-rejeitados .export-icone { color: var(--cor-invalido); }
+.export-completo .export-icone { color: var(--etl-extract); }
+
+/* Upload */
+.dropzone {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: .75rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    background: var(--bs-body-bg);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+.dropzone:hover, .dropzone.arrastando { border-color: var(--etl-extract); background: rgba(13, 110, 253, .05); }
+.dropzone i { font-size: 2.5rem; color: var(--etl-extract); }
+
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline-block; }
+
+.tabela-dados td, .tabela-dados th { white-space: nowrap; }
+.card .table > :not(caption) > * > *:first-child { padding-left: .9rem; }
+.card .table > :not(caption) > * > *:last-child { padding-right: .9rem; }
+.texto-quebra { white-space: normal !important; min-width: 16rem; }
+.valor-vazio { color: var(--bs-secondary-color); font-style: italic; }
+
+/* Tema: mostra o ícone da ação disponível */
+[data-bs-theme="light"] .tema-claro-icone { display: none; }
+[data-bs-theme="dark"] .tema-escuro-icone { display: none; }
+
+.grafico-container { position: relative; height: 260px; }

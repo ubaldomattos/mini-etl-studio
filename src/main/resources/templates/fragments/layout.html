@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(titulo, conteudo, scripts)" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:replace="${titulo}">Mini ETL Studio</title>
+    <!-- Aplica o tema salvo antes de renderizar, evitando "piscar" -->
+    <script>
+        (function () {
+            var t = localStorage.getItem('tema');
+            if (!t) { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg app-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold" th:href="@{/}">
+            <span class="brand-logo"><i class="bi bi-diagram-3-fill"></i></span> Mini ETL Studio
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"
+                aria-controls="menu" aria-expanded="false" aria-label="Abrir menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" th:classappend="${ativo == 'dashboard'} ? 'active'"
+                                        th:href="@{/}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${ativo == 'importar'} ? 'active'"
+                                        th:href="@{/importar}"><i class="bi bi-upload"></i> Importar</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${ativo == 'clientes'} ? 'active'"
+                                        th:href="@{/clientes}"><i class="bi bi-people"></i> Clientes</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${ativo == 'historico'} ? 'active'"
+                                        th:href="@{/processamentos}"><i class="bi bi-clock-history"></i> Histórico</a></li>
+            </ul>
+            <button id="alternarTema" class="btn btn-sm btn-outline-secondary" type="button"
+                    title="Alternar modo claro/escuro" aria-label="Alternar modo claro/escuro">
+                <i class="bi bi-moon-stars-fill tema-escuro-icone"></i>
+                <i class="bi bi-sun-fill tema-claro-icone"></i>
+                <span class="ms-1 d-lg-none">Alternar tema</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4 flex-grow-1">
+    <div th:if="${sucesso}" class="alert alert-success alert-dismissible fade show d-flex gap-2" role="alert">
+        <i class="bi bi-check-circle-fill"></i><div th:text="${sucesso}"></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show d-flex gap-2" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i><div th:text="${erro}"></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    <th:block th:replace="${conteudo}"></th:block>
+</main>
+
+<footer class="py-3 border-top small text-body-secondary">
+    <div class="container d-flex flex-wrap justify-content-between gap-2">
+        <span>Mini ETL Studio · Extract → Transform → Load</span>
+        <span>Java 21 · Spring Boot · SQLite</span>
+    </div>
+</footer>
+
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+<th:block th:replace="${scripts}"></th:block>
+</body>
+</html>
