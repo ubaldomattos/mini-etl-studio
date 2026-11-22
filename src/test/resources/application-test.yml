@@ -1,0 +1,14 @@
+app:
+  # Banco SQLite isolado por contexto de teste, em target/ (removido no mvn clean).
+  db-path: ./target/test-db/mini-etl-test-${random.uuid}.db
+  preview:
+    linhas: 3
+
+spring:
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    br.com.minietl: WARN
+    org.flywaydb: WARN
