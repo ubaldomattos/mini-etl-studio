@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: mini-etl-studio
+  jpa:
+    open-in-view: false
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      # O esquema é gerenciado pelo Flyway (db/migration).
+      ddl-auto: none
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: ${APP_MAX_UPLOAD:5MB}
+      max-request-size: ${APP_MAX_UPLOAD:5MB}
+  thymeleaf:
+    cache: true
+
+server:
+  port: ${APP_PORT:8080}
+  error:
+    include-message: never
+  servlet:
+    session:
+      # Evita ";jsessionid=" nas URLs (sessão usada só para mensagens flash).
+      tracking-modes: cookie
+
+app:
+  # Caminho do arquivo SQLite (criado automaticamente na primeira execução).
+  db-path: ${APP_DB_PATH:./data/mini-etl.db}
+  preview:
+    # Quantidade de linhas exibidas na prévia do arquivo.
+    linhas: ${APP_PREVIEW_LINHAS:50}
+  export:
+    # Separador dos CSVs exportados. Use ";" para abrir direto no Excel em pt-BR.
+    delimiter: "${APP_EXPORT_DELIMITER:,}"
+
+logging:
+  level:
+    br.com.minietl: INFO
